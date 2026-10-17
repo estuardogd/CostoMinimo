@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMG | Plataforma de Optimización Logística</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root {
+            /* Paleta Institucional UMG Optimizada para Legibilidad */
+            --primary: #002855; 
+            --primary-light: #003a7a;
+            --secondary: #B28D42;
+            --secondary-light: #d3ad5e;
+            --accent: #15803d; 
+            --danger: #b91c1c;
+            --bg-body: #ffffff; /* Fondo blanco para máxima claridad */
+            --bg-card: #f9fafb; /* Gris muy claro para las tarjetas */
+            --text-main: #1f2937; /* Gris muy oscuro para texto principal */
+            --text-muted: #4b5563; /* Gris medio para texto secundario */
+            --border-radius: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; line-height: 1.6;}
+
+        /* --- Navbar Corporativo --- */
+        nav {
+            background-color: var(--primary);
+            color: #fff; padding: 1rem 3rem; display: flex; justify-content: space-between;
+            align-items: center; box-shadow: var(--shadow-md); border-bottom: 3px solid var(--secondary);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; }
+        .nav-brand h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.5px; margin: 0; display: flex; align-items: center; gap: 10px;}
+        .nav-brand span { color: var(--secondary); font-weight: 400; border-left: 2px solid rgba(255,255,255,0.2); padding-left: 10px;}
+        .nav-links { display: flex; gap: 8px; }
+        .nav-links button {
+            background: transparent; border: none; color: #cbd5e1;
+            padding: 0.6rem 1rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+        .nav-links button:hover, .nav-links button.active-nav { background: rgba(255,255,255,0.1); color: #fff; }
+
+        /* --- Contenedor Global --- */
+        .container { max-width: 1240px; margin: 2.5rem auto; padding: 0 1.5rem; flex: 1; width: 100%; }
+        
+        .section {
+            display: none; background: var(--bg-card); padding: 2.5rem 3rem;
+            border-radius: var(--border-radius); box-shadow: var(--shadow-sm);
+            animation: fadeIn 0.3s ease-out; border: 1px solid #e5e7eb;
+        }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Tipografía --- */
+        h2 { color: var(--primary); font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: -0.5px;}
+        .subtitle { font-size: 1.05rem; color: var(--text-muted); margin-bottom: 2rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 1rem;}
+        
+        /* --- Botones ERP --- */
+        .btn {
+            padding: 0.75rem 1.5rem; font-size: 0.95rem; font-weight: 600; border: none; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;
+            letter-spacing: 0.3px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-light); box-shadow: 0 4px 12px rgba(0,40,85,0.15); }
+        .btn-secondary { background: #f3f4f6; color: var(--text-main); border: 1px solid #d1d5db; }
+        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-success { background: var(--accent); color: white; }
+        .btn-success:hover { background: #166534; box-shadow: 0 4px 12px rgba(21,128,61,0.2); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: #f9fafb; }
+
+        /* --- Panel de Controles --- */
+        .controls-wrapper { 
+            display: flex; gap: 1rem; background: #ffffff; padding: 1.2rem 1.5rem; 
+            border-radius: 8px; margin-bottom: 2rem; align-items: flex-end; flex-wrap: wrap; 
+            border: 1px solid #e5e7eb; border-left: 4px solid var(--secondary);
+        }
+        .input-group { display: flex; flex-direction: column; min-width: 120px; }
+        .input-group label { font-size: 0.8rem; font-weight: 700; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .input-group input { padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 1rem; text-align: center; font-weight: 600; color: var(--text-main); transition: border-color 0.2s;}
+        .input-group input:focus { border-color: var(--secondary); outline: none; }
+
+        /* --- Tabla Dinámica --- */
+        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; background: white;}
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--primary); color: white; padding: 12px; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.5px; text-transform: uppercase;}
+        td { border: 1px solid #e5e7eb; padding: 0; position: relative; }
+        td input {
+            width: 100%; padding: 14px 10px; border: none; text-align: center;
+            font-family: 'Consolas', 'Courier New', monospace; font-size: 1.1rem; background: transparent; transition: background 0.2s; color: var(--text-main);
+        }
+        td input:focus { background: #f9fafb; outline: none; }
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .bg-oferta { background-color: #fefce8; border-left: 2px solid #facc15;} .bg-oferta input { color: #854d0e; font-weight: 700; }
+        .bg-demanda { background-color: #f0fdf4; border-top: 2px solid #4ade80;} .bg-demanda input { color: #166534; font-weight: 700; }
+
+        /* --- Informe PDF y Dashboard --- */
+        .informe-container { background: white; padding: 0; }
+        .informe-header { display: flex; justify-content: space-between; border-bottom: 2px solid #e5e7eb; padding-bottom: 1.5rem; margin-bottom: 2rem;}
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+        .kpi-card { background: #fff; padding: 1.5rem; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: space-between;}
+        .kpi-info h4 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px;}
+        .kpi-info .value { font-size: 2rem; font-weight: 800; color: var(--primary); letter-spacing: -1px;}
+        .kpi-icon { background: #f9fafb; padding: 12px; border-radius: 8px; color: var(--secondary); border: 1px solid #f3f4f6;}
+
+        .table-resultados th { background: #f9fafb; color: var(--primary); border-bottom: 2px solid #d1d5db; }
+        .table-resultados td { padding: 12px; border: 1px solid #f3f4f6; text-align: center; }
+        .ruta-optima { background: #f0fdf4; border: 2px solid var(--accent) !important; font-weight: 600; color: #166534; }
+        .costo-badge { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; font-weight: normal; }
+
+        /* --- Bitácora de Terminal --- */
+        .terminal-box { 
+            background: #111827; color: #f3f4f6; padding: 1.5rem; border-radius: 8px; 
+            font-family: 'Consolas', monospace; font-size: 0.85rem; height: 250px; overflow-y: auto; 
+            margin-bottom: 2rem; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); border: 1px solid #1f2937;
+        }
+        .terminal-box p { margin-bottom: 6px; line-height: 1.5; color: inherit; font-size: inherit;}
+        .term-time { color: #9ca3af; margin-right: 10px; }
+        .term-info { color: #38bdf8; }
+        .term-success { color: #4ade80; }
+        .term-warn { color: #fbbf24; }
+        .term-math { color: #fcd34d; font-weight: bold;} /* Color para las fórmulas */
+
+        /* --- Loader y Toasts --- */
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 9999;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .spinner {
+            width: 60px; height: 60px; border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--secondary); border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 10000; }
+        .toast {
+            background: var(--primary); color: white; padding: 1rem 1.5rem;
+            border-radius: 6px; margin-top: 10px; box-shadow: var(--shadow-md);
+            display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 0.95rem;
+            animation: slideInRight 0.3s forwards, fadeOut 0.3s forwards 4s;
+        }
+        .toast.success { border-left: 4px solid var(--accent); }
+        .toast.error { border-left: 4px solid var(--danger); background: #fff; color: var(--danger); border: 1px solid #fecaca;}
+        .toast.info { border-left: 4px solid var(--secondary); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Overlay Loader -->
+    <div class="loader-overlay" id="loader">
+        <div class="spinner"></div>
+        <div style="font-size: 1.2rem; font-weight: 600; color: var(--primary); letter-spacing: 0.5px;" id="loader-msg">Procesando transacciones...</div>
+    </div>
+
+    <!-- Sistema de Notificaciones -->
+    <div class="toast-container" id="toast-box"></div>
+
+    <!-- Navegación Institucional -->
+    <nav>
+        <div class="nav-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+            <h1>UMG <span>Optimización Logística</span></h1>
+        </div>
+        <div class="nav-links">
+            <button id="nav-inicio" onclick="showSection('inicio')" class="active-nav">Resumen Ejecutivo</button>
+            <button id="nav-config" onclick="showSection('config')">Simulador de Red</button>
+            <button id="nav-teoria" onclick="showSection('teoria')">Fundamentos</button>
+            <button id="nav-creditos" onclick="showSection('creditos')">Autoría</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <!-- PANTALLA: INICIO -->
+        <div id="inicio" class="section active">
+            <h2>Algoritmo de Transporte: Costo Mínimo</h2>
+            <p class="subtitle">Módulo de Programación Lineal e Investigación de Operaciones</p>
+            <p style="max-width: 850px; margin-bottom: 2rem;">Sistema de software desarrollado para la automatización y cálculo de redes logísticas de distribución. El algoritmo implementado determina la <strong>Solución Básica Factible Inicial</strong> iterando estrictamente sobre las rutas con el menor costo económico unitario, garantizando un punto de partida óptimo para procesos de distribución a gran escala.</p>
+            
+            <div style="display: flex; gap: 12px;">
+                <button class="btn btn-primary" onclick="showSection('config')">Acceder al Simulador</button>
+                <button class="btn btn-outline" onclick="showSection('teoria')">Ver Marco Teórico</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA: CONFIGURACIÓN -->
+        <div id="config" class="section">
+            <h2>Parametrización de Matriz</h2>
+            <p class="subtitle">Estructure los nodos de la red logística, inserte los costos unitarios y defina los flujos de oferta y demanda.</p>
+            
+            <div class="controls-wrapper">
+                <div class="input-group">
+                    <label>Orígenes (Plantas)</label>
+                    <input type="number" id="numFilas" value="3" min="1" max="15" onchange="generarTabla(false)">
+                </div>
+                <div class="input-group">
+                    <label>Destinos (Clientes)</label>
+                    <input type="number" id="numCols" value="4" min="1" max="15" onchange="generarTabla(false)">
+                </div>
+                <button class="btn btn-primary" onclick="generarTabla(true)">Cargar Caso Base</button>
+                <button class="btn btn-secondary" onclick="generarAleatorio()">
+                    Generar Aleatorio
+                </button>
+                <button class="btn btn-secondary" style="margin-left: auto;" onclick="limpiarMatriz()">Limpiar Celdas</button>
+            </div>
+            
+            <div id="tabla-container" class="table-responsive"></div>
+            
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                <button class="btn btn-success" style="padding: 0.8rem 2rem; font-size: 1.05rem;" onclick="iniciarProcesamiento()">
+                    Procesar Optimización
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA: MARCO TEÓRICO -->
+        <div id="teoria" class="section">
+            <h2>Marco Teórico Aplicado</h2>
+            <p class="subtitle">Fundamentación matemática del algoritmo implementado.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div>
+                    <h3 style="color: var(--primary); font-size: 1.15rem; margin-bottom: 0.8rem;">Problema de Transporte</h3>
+                    <p style="text-align: justify; font-size: 0.95rem; color: var(--text-muted);">El Modelo de Transporte es una aplicación de la programación lineal orientada a minimizar el costo logístico de distribuir un producto homogéneo desde <em>m</em> orígenes hacia <em>n</em> destinos, sujeto a restricciones de capacidad y requerimientos.</p>
+                </div>
+                <div style="background: #ffffff; padding: 1.5rem; border-radius: 8px; border-left: 3px solid var(--secondary); border: 1px solid #e5e7eb;">
+                    <h3 style="color: var(--primary); font-size: 1.15rem; margin-bottom: 0.8rem;">Heurística del Costo Mínimo</h3>
+                    <ul style="padding-left: 20px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                        <li><strong>Identificación:</strong> Búsqueda de la variable de decisión <span style="font-family: monospace; font-size: 1.05em; color: var(--primary);">X_ij</span> asociada al costo <span style="font-family: monospace; font-size: 1.05em; color: var(--primary);">C_ij</span> más bajo.</li>
+                        <li><strong>Asignación:</strong> <span style="font-family: monospace; font-size: 1.05em; color: var(--primary);">X_ij = min(Oferta_i, Demanda_j)</span>.</li>
+                        <li><strong>Ajuste:</strong> Disminución de los recursos y saturación de la fila/columna.</li>
+                        <li><strong>Iteración:</strong> Ejecución en bucle hasta que la red esté satisfecha.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA: RESULTADOS & REPORTE PDF -->
+        <div id="resolucion" class="section" style="background: transparent; box-shadow: none; padding: 0; border: none;">
+            
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; background: white; padding: 1.2rem 1.5rem; border-radius: 8px; box-shadow: var(--shadow-sm); border: 1px solid #e5e7eb;">
+                <button class="btn btn-secondary" onclick="showSection('config')"><< Ajustar Variables</button>
+                <button class="btn btn-outline" onclick="exportarPDF()">
+                    Descargar Informe PDF
+                </button>
+            </div>
+
+            <!-- CONTENEDOR EXPORTABLE (PDF) -->
+            <div id="informe-imprimible" class="informe-container" style="padding: 2.5rem; border-radius: 10px; border: 1px solid #e5e7eb; background: white;">
+                
+                <div class="informe-header">
+                    <div>
+                        <h2 style="margin-bottom: 2px;">Reporte de Optimización Logística</h2>
+                        <p style="margin: 0; color: var(--secondary); font-weight: 600; font-size: 0.95rem;">Aplicación del Método de Costo Mínimo</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 2px;">Universidad Mariano Gálvez</h3>
+                        <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);" id="fecha-reporte"></p>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <h4>Función Objetivo (Z)</h4>
+                            <div class="value" id="res-costo-total">Q 0.00</div>
+                        </div>
+                        <div class="kpi-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <h4>Unidades Transportadas</h4>
+                            <div class="value" id="res-unidades-total" style="color: var(--text-main);">0</div>
+                        </div>
+                        <div class="kpi-icon" style="color: var(--text-muted);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-info">
+                            <h4>Balance del Sistema</h4>
+                            <div class="value" style="font-size: 1.2rem; margin-top: 8px;" id="res-status">Evaluando...</div>
+                        </div>
+                        <div class="kpi-icon" style="color: var(--primary);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;">1. Matriz de Asignación Óptima</h3>
+                <div class="table-responsive" style="margin-bottom: 2.5rem; box-shadow: none; border-color: #f3f4f6;">
+                    <table class="table-resultados" id="tabla-resultados-asignacion"></table>
+                </div>
+
+                <!-- BITÁCORA TIPO TERMINAL -->
+                <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 0.8rem; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;">2. Bitácora de Procesamiento (Auditoría)</h3>
+                <div class="terminal-box" id="bitacora-log"></div>
+            </div>
+        </div>
+
+        <!-- PANTALLA: CRÉDITOS -->
+        <div id="creditos" class="section">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; border-top: 6px solid var(--secondary);">
+                <div style="background: var(--primary); color: white; padding: 2rem; text-align: center;">
+                    <h2 style="color: white; margin: 0; font-size: 2rem; letter-spacing: -0.5px;">Allan Estuardo Gómez Díaz</h2>
+                    <p style="margin: 5px 0 0 0; color: var(--secondary-light); font-size: 1.1rem;">Facultad de Ingeniería en Sistemas</p>
+                </div>
+                <div style="padding: 2rem; text-align: center;">
+                    <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Carné Académico</p>
+                    <p style="font-size: 1.5rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem;">1490 24 4984</p>
+                    
+                    <p style="color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Curso de Aplicación</p>
+                    <p style="font-size: 1.2rem; font-weight: 600; color: var(--primary);">Investigación de Operaciones</p>
+                </div>
+                <div style="background: #f9fafb; padding: 1rem; text-align: center; border-top: 1px solid #e5e7eb; color: var(--text-muted); font-size: 0.85rem;">
+                    Universidad Mariano Gálvez de Guatemala (UMG) &copy; 2026
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MOTOR LÓGICO Y CONTROLADORES -->
+    <script>
+        // Formateador de tiempo para bitácora
+        function getTimeStamp() {
+            const now = new Date();
+            return `[${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}.${now.getMilliseconds().toString().padStart(3,'0')}]`;
+        }
+
+        // Sistema de Toasts
+        function mostrarToast(mensaje, tipo = 'success') {
+            const box = document.getElementById('toast-box');
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            const icono = tipo === 'success' ? '✓' : (tipo === 'info' ? 'ℹ' : '⚠');
+            toast.innerHTML = `<span style="font-size:1.1rem; font-weight:bold;">${icono}</span> <span>${mensaje}</span>`;
+            box.appendChild(toast);
+            setTimeout(() => { if (box.contains(toast)) box.removeChild(toast); }, 3500);
+        }
+
+        // Control de Navegación
+        function showSection(id) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active-nav'));
+            document.getElementById(id).classList.add('active');
+            
+            const navBtn = document.getElementById('nav-' + id);
+            if(navBtn) navBtn.classList.add('active-nav');
+            
+            if(id === 'config' && !document.getElementById('tabla-matriz')) generarTabla(true);
+        }
+
+        // Generador de Matriz
+        function generarTabla(usarDatosEjemplo) {
+            const filas = parseInt(document.getElementById('numFilas').value);
+            const cols = parseInt(document.getElementById('numCols').value);
+            const container = document.getElementById('tabla-container');
+            
+            const defC = [[10, 2, 20, 11], [12, 7, 9, 20], [4, 14, 16, 18]];
+            const defO = [15, 25, 10], defD = [5, 15, 15, 15];
+            const esEjemplo = (usarDatosEjemplo && filas === 3 && cols === 4);
+
+            let html = '<table id="tabla-matriz"><tr><th>Nodos</th>';
+            for (let j = 0; j < cols; j++) html += `<th>Dest. ${j+1}</th>`;
+            html += '<th style="background:#b45309;">OFERTA</th></tr>';
+
+            for (let i = 0; i < filas; i++) {
+                html += `<tr><th>Orig. ${i+1}</th>`;
+                for (let j = 0; j < cols; j++) {
+                    let val = esEjemplo ? defC[i][j] : "";
+                    html += `<td><input type="number" id="C_${i}_${j}" value="${val}" min="0" placeholder="0"></td>`;
+                }
+                let ofVal = esEjemplo ? defO[i] : "";
+                html += `<td class="bg-oferta"><input type="number" id="O_${i}" value="${ofVal}" min="0" placeholder="Of."></td></tr>`;
+            }
+
+            html += '<tr><th style="background:#166534;">DEMANDA</th>';
+            for (let j = 0; j < cols; j++) {
+                let demVal = esEjemplo ? defD[j] : "";
+                html += `<td class="bg-demanda"><input type="number" id="D_${j}" value="${demVal}" min="0" placeholder="Dem."></td>`;
+            }
+            html += '<td style="background:#f9fafb;"></td></tr></table>';
+
+            container.innerHTML = html;
+            if(usarDatosEjemplo) mostrarToast("Caso base cargado correctamente.", "info");
+        }
+
+        function limpiarMatriz() {
+            document.querySelectorAll('#tabla-matriz input').forEach(input => input.value = "");
+            mostrarToast("Matriz formateada.");
+        }
+
+        // Generador Aleatorio Estructurado
+        function generarAleatorio() {
+            const filas = parseInt(document.getElementById('numFilas').value);
+            const cols = parseInt(document.getElementById('numCols').value);
+            
+            for (let i = 0; i < filas; i++) {
+                for (let j = 0; j < cols; j++) {
+                    document.getElementById(`C_${i}_${j}`).value = Math.floor(Math.random() * 145) + 5;
+                }
+            }
+            
+            let total = 0;
+            for (let i = 0; i < filas; i++) {
+                let val = Math.floor(Math.random() * 200) + 50; 
+                document.getElementById(`O_${i}`).value = val;
+                total += val;
+            }
+            
+            let demRestante = total;
+            for (let j = 0; j < cols - 1; j++) {
+                let fraccionPromedio = Math.floor(demRestante / (cols - j));
+                let val = Math.floor(Math.random() * (fraccionPromedio * 1.5)) + 10;
+                if (val > demRestante) val = demRestante;
+                document.getElementById(`D_${j}`).value = val;
+                demRestante -= val;
+            }
+            document.getElementById(`D_${cols-1}`).value = demRestante > 0 ? demRestante : 0;
+
+            mostrarToast("Simulación de red aleatoria generada.", "success");
+        }
+
+        // Validación Pre-Cálculo
+        function iniciarProcesamiento() {
+            let valid = true;
+            document.querySelectorAll('#tabla-matriz input').forEach(input => {
+                input.style.border = "none";
+                let val = parseFloat(input.value);
+                if(input.value.trim() === "" || isNaN(val) || val < 0) { 
+                    input.style.border = "2px solid var(--danger)"; 
+                    valid = false; 
+                }
+            });
+            
+            if(!valid) { mostrarToast("Verifique que todos los campos sean números positivos.", "error"); return; }
+            
+            document.getElementById('loader-msg').innerText = "Ejecutando Modelado Heurístico...";
+            document.getElementById('loader').style.display = 'flex';
+            
+            setTimeout(() => {
+                ejecutarAlgoritmo();
+                document.getElementById('loader').style.display = 'none';
+                mostrarToast("Análisis completado.", "success");
+                showSection('resolucion');
+            }, 600);
+        }
+
+        // Motor Matemático + Bitácora Estilo Terminal
+        function ejecutarAlgoritmo() {
+            const filas = parseInt(document.getElementById('numFilas').value);
+            const cols = parseInt(document.getElementById('numCols').value);
+            let costos = [], oferta = [], demanda = [];
+
+            for (let i = 0; i < filas; i++) {
+                let filaC = [];
+                for (let j = 0; j < cols; j++) filaC.push(parseInt(document.getElementById(`C_${i}_${j}`).value));
+                costos.push(filaC);
+                oferta.push(parseInt(document.getElementById(`O_${i}`).value));
+            }
+            for (let j = 0; j < cols; j++) demanda.push(parseInt(document.getElementById(`D_${j}`).value));
+
+            let asignacion = Array.from({length: filas}, () => Array(cols).fill(0));
+            let ofAct = [...oferta], demAct = [...demanda];
+            let totOf = ofAct.reduce((a, b) => a + b, 0);
+            let totDem = demAct.reduce((a, b) => a + b, 0);
+            let totalUnidadesTransportadas = 0;
+
+            let bitacora = `<p><span class="term-time">${getTimeStamp()}</span> <span class="term-info">SYS_START</span> Inicializando matriz ${filas}x${cols}.</p>`;
+            bitacora += `<p><span class="term-time">${getTimeStamp()}</span> <span class="term-info">VALIDATION</span> Oferta Global: ${totOf} | Demanda Global: ${totDem}</p>`;
+            
+            let iteracion = 1;
+
+            while (true) {
+                let minC = Infinity, mF = -1, mC = -1, quedan = false;
+                
+                for (let i = 0; i < filas; i++) {
+                    for (let j = 0; j < cols; j++) {
+                        if (ofAct[i] > 0 && demAct[j] > 0) {
+                            quedan = true;
+                            if (costos[i][j] < minC) { minC = costos[i][j]; mF = i; mC = j; }
+                        }
+                    }
+                }
+                
+                if (!quedan || mF === -1) {
+                    bitacora += `<p><span class="term-time">${getTimeStamp()}</span> <span class="term-success">SYS_END</span> Heurística finalizada. Nodos satisfechos.</p>`;
+                    break;
+                }
+                
+                let asig = Math.min(ofAct[mF], demAct[mC]);
+                asignacion[mF][mC] = asig;
+                totalUnidadesTransportadas += asig;
+                
+                bitacora += `<br><p><span class="term-time">${getTimeStamp()}</span> <span>[ITERACIÓN ${iteracion}]</span> Búsqueda de Costo Mínimo: <span class="term-math">Q${minC}</span> en intersección (O${mF+1}, D${mC+1}).</p>`;
+                bitacora += `<p><span class="term-time">${getTimeStamp()}</span> <span style="color:#9ca3af;">-> Asignando bloque logístico de ${asig} unidades.</span></p>`;
+                
+                ofAct[mF] -= asig; 
+                demAct[mC] -= asig;
+                
+                if (ofAct[mF] === 0) bitacora += `<p><span class="term-time">${getTimeStamp()}</span> <span class="term-warn">-> NODO O${mF+1} SATURADO (Oferta agotada).</span></p>`;
+                if (demAct[mC] === 0) bitacora += `<p><span class="term-time">${getTimeStamp()}</span> <span class="term-warn">-> NODO D${mC+1} SATISFECHO (Demanda cubierta).</span></p>`;
+                
+                iteracion++;
+            }
+
+            document.getElementById('bitacora-log').innerHTML = bitacora;
+            renderizarDashboard(filas, cols, costos, asignacion, totOf, totDem, totalUnidadesTransportadas);
+        }
+
+        // Renderizado UI Resultados
+        function renderizarDashboard(filas, cols, costos, asignacion, totOf, totDem, totUnidades) {
+            let costoZ = 0;
+            let htmlT = '<tr><th>Distribución</th>';
+            for (let j = 0; j < cols; j++) htmlT += `<th>D${j+1}</th>`;
+            htmlT += '</tr>';
+
+            for (let i = 0; i < filas; i++) {
+                htmlT += `<tr><th>O${i+1}</th>`;
+                for (let j = 0; j < cols; j++) {
+                    let a = asignacion[i][j], c = costos[i][j];
+                    if(a > 0) {
+                        costoZ += (a * c);
+                        htmlT += `<td class="ruta-optima">${a} u.<span class="costo-badge">Q ${c}</span></td>`;
+                    } else {
+                        htmlT += `<td><span style="color:#cbd5e1;">0</span><span class="costo-badge">Q ${c}</span></td>`;
+                    }
+                }
+                htmlT += '</tr>';
+            }
+
+            document.getElementById('tabla-resultados-asignacion').innerHTML = htmlT;
+            document.getElementById('res-costo-total').textContent = `Q ${costoZ.toLocaleString('es-GT')}`;
+            document.getElementById('res-unidades-total').textContent = totUnidades.toLocaleString('es-GT');
+            
+            let status = document.getElementById('res-status');
+            if(totOf === totDem) {
+                status.innerHTML = `<span style="color:var(--accent);">Equilibrio Óptimo</span>`;
+            } else {
+                status.innerHTML = `<span style="color:var(--danger); font-size:1.05rem;">Desviación: ${Math.abs(totOf - totDem)} u.</span>`;
+            }
+
+            let fecha = new Date();
+            const opcionesFecha = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('fecha-reporte').textContent = fecha.toLocaleDateString('es-GT', opcionesFecha);
+        }
+
+        // Exportación PDF (html2pdf)
+        function exportarPDF() {
+            document.getElementById('loader-msg').innerText = "Compilando Documento PDF...";
+            document.getElementById('loader').style.display = 'flex';
+
+            const elemento = document.getElementById('informe-imprimible');
+            
+            const opt = {
+                margin:       0.4, 
+                filename:     'Reporte_UMG_Investigacion_Operaciones.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true }, 
+                jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(elemento).save().then(() => {
+                document.getElementById('loader').style.display = 'none';
+                mostrarToast("Documento guardado localmente.", "success");
+            }).catch(err => {
+                document.getElementById('loader').style.display = 'none';
+                mostrarToast("Fallo en la conversión a PDF.", "error");
+            });
+        }
+
+        showSection('inicio');
+    </script>
+</body>
+</html>
